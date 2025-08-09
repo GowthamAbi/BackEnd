@@ -1,6 +1,7 @@
 const User=require('../module/user')   
 const bcrypt=require('bcryptjs')
-
+const res = require('express/lib/response')
+const jwt=require('jsonwebtoken')
 
     exports.register=async(req,res)=>{
     
@@ -29,14 +30,29 @@ const bcrypt=require('bcryptjs')
     
     exports.login=async(req,res)=>{
         const{email,password}=req.body
-        const userpassword=await User.findOne({password})
-        if(password!=userpassword.password){
+        const user=await User.findOne({email})
+        const isMatch=await bcrypt.compare(password,user.password)
+        console.log(isMatch)
+        if(!isMatch){
             return res.status(400).json({message:"Password doesn't match"})
         }
-        res.status(200).json({message:"Successfully login"})
+
+        const token=await jwt.sign({userId:user.id},process.env.JWT_SECRETKEY,{expiresIn:"1hr"})
+                res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 3600000,
+            });
+        res.status(200).json({message:"Successfully login",token:token,user:user})
     }
 
-    exports.dashBoard=async(res,req)=>{
+    exports.logout=()=>{
+        res.clearCookie('token')
+        res.status(200).json({message:"Successfull logout"})
+    }
+    exports.dashBoard=async(req,res)=>{
+        res.status(201).json({user:User.findById(req.user.id)})
         
     }
 
