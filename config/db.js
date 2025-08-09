@@ -1,5 +1,7 @@
 const mongoose=require('mongoose')
-const db=mongoose.connect('mongodb+srv://gowthamabi1412:Gowtham2131%40@office.lrtep.mongodb.net/')
+require('dotenv').config()
+
+const db=mongoose.connect(process.env.URL)
             .then(() => {
                 console.log("Database connected successfully")
             })
