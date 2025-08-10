@@ -1,14 +1,22 @@
-const express=require('express')
-const jwt=require('jsonwebtoken')
 
-const authMiddleware=async(res,req,next)=>{
+const jwt=require("jsonwebtoken")
+
+
+const authMiddleware=(req,res,next)=>{
     try{
         let token=req.cookies?.token
-        if(!token&&req.headers.authorization?.startWith("Bearer ")){
+         
+        console.log("🔹 Received Token:", token ? "✅ Present" : "❌ Missing"); // Debugging log
+        if(!token&&req.headers.authorization?.startsWith("Bearer ")){
             token=req.headers.authorization.split(" ")[1]
         }
-        const decoded=await jwt.verify(token,process.env.JWT_SECRETKEY)
+        console.log("🔹 Received Token:", token ? "✅ Present" : "❌ Missing"); // Debugging log
+
+        if(!token){ return res.status(401).json({ message: "Unauthorized: No token provided" });}
+        const decoded=jwt.verify(token,process.env.JWT_SECRETKEY)
+        
         req.user={id:decoded.userId||decoded.id}
+        console.log("Code Enter in next level")
         next()
     }catch(err){
         console.log(err)
